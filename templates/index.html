@@ -1,0 +1,65 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <title>ADVANCED TESTING</title>
+    </head>
+
+    <body>
+        <header>
+            <nav>
+
+            </nav>
+        </header>
+
+        <main>
+            <section class="section-form">
+                <h1>ADVANCED TESTING</h1>
+                <hr>
+                <!-- Audio testing form -->
+                    <button type="button" class="btn btn-light btn-lg">YOUR ACTIVITY</button> <br>
+                    <br><button type="button" class="btn btn-light btn-lg" onclick="viewDiv(0)">AUDIO ANALYSIS</button><br>
+                    <div id="div0" class="modalm">
+                      <img src="{% static 'images/micro.png'%}" width="150" height="150">
+                      <br><br><p>Explain what is going to happen, why we need to record your voice. Give instructions to the user. Explain what is going to happen, why we need to scan. Give instructions to the user.</p>
+                      <a href="{% url 'audiorec:index'  %}">
+                        <button class="btn btn-light btn-lg">START</button>
+                      </a>
+                    </div>
+                    <br><button type="button" class="btn btn-light btn-lg">FACE SCAN</button><br>
+                    <br><button type="button" class="btn btn-light btn-lg" onclick="viewDiv(1)">VIDEO ANALYSIS</button><br>
+                    <div id="div1" class="modalm">
+                      <br><p>Explain what is going to happen, why we need to record your voice. Give instructions to the user. Explain what is going to happen, why we need to scan. Give instructions to the user.</p>
+                      <a href="{% url 'viderec:index'  %}">
+                        <button class="btn btn-light btn-lg">START</button>
+                      </a>
+                    </div> <br><button type="button" class="btn btn-light btn-lg">TEXT ANALYSIS</button><br>
+                    <br><p>PSYSCAN</p>
+            </section>
+        </main>
+
+        <footer>
+
+        </footer>
+    </body>
+    <script>
+      function viewDiv(x){
+        var y = "div"+x;
+        if (!document.getElementById(y).style.display) {
+          document.getElementById(y).style.display = "block";
+          return 0;
+        }
+        if (document.getElementById(y).style.display == "block") {
+          document.getElementById(y).style.display = "none";
+          return 0;
+        }
+        if (document.getElementById(y).style.display == "none") {
+          document.getElementById(y).style.display = "block";
+          return 0;
+        }
+      };
+    </script>
+</html>

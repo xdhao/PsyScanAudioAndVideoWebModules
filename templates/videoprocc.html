@@ -1,0 +1,184 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>        <title>RECORDING AUDIO</title>
+    </head>
+    <body>
+        <header>
+            <nav>
+            </nav>
+        </header>
+        <main>
+            <section class="section-form">
+              <h1>VIDEO</h1>
+              <video controls></video>
+              <video style="display: none" id="vid2" controls></video>
+              <form method="POST">
+                <button id="btnStart" type="button">
+                    <i class="bi bi-camera-video"></i> START
+                </button>
+                <button id="btnStop" type="button" onclick="butDis(0)">
+                    <i class="bi bi-camera-video-off"></i> STOP
+                </button>
+                <button id="btnSave" type="button" disabled onclick="butDis(1); this.disabled=true;"><i class="bi bi-upload"></i> SEND</button>
+                <input id="filenameid" type="hidden" name="filename" value="">
+                <button id="btnAnalysis" type="submit" disabled>{% csrf_token %}<i class="bi bi-bar-chart-line-fill"></i> ANALYSIS</button>
+
+              </form>
+              <br><p>PSYSCAN</p>
+               <script>
+                    let constraintObj = {
+                        audio: true,
+                        video: {
+                            facingMode: "user",
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 }
+                        }
+                    };
+                    // width: 1280, height: 720  -- preference only
+                    // facingMode: {exact: "user"}
+                    // facingMode: "environment"
+
+                    //handle older browsers that might implement getUserMedia in some way
+                    if (navigator.mediaDevices === undefined) {
+                        navigator.mediaDevices = {};
+                        navigator.mediaDevices.getUserMedia = function(constraintObj) {
+                            let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+                            if (!getUserMedia) {
+                                return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+                            }
+                            return new Promise(function(resolve, reject) {
+                                getUserMedia.call(navigator, constraintObj, resolve, reject);
+                            });
+                        }
+                    }else{
+                        navigator.mediaDevices.enumerateDevices()
+                        .then(devices => {
+                            devices.forEach(device=>{
+                                console.log(device.kind.toUpperCase(), device.label);
+                                //, device.deviceId
+                            })
+                        })
+                        .catch(err=>{
+                            console.log(err.name, err.message);
+                        })
+                    }
+
+                    navigator.mediaDevices.getUserMedia(constraintObj)
+                    .then(function(mediaStreamObj) {
+                        //connect the media stream to the first video element
+                        let video = document.querySelector('video');
+                        if ("srcObject" in video) {
+                            video.srcObject = mediaStreamObj;
+                        } else {
+                            //old version
+                            video.src = window.URL.createObjectURL(mediaStreamObj);
+                        }
+
+                        video.onloadedmetadata = function(ev) {
+                            //show in the video element what is being captured by the webcam
+                            video.play();
+                        };
+
+                        //add listeners for saving video/audio
+                        let start = document.getElementById('btnStart');
+                        let stop = document.getElementById('btnStop');
+                        let sendVid = document.getElementById('btnSave');
+                        let vidSave = document.getElementById('vid2');
+                        let mediaRecorder = new MediaRecorder(mediaStreamObj);
+                        let chunks = [];
+                        let sendobj;
+
+                        start.addEventListener('click', (ev)=>{
+                            mediaRecorder.start();
+                            console.log(mediaRecorder.state);
+                        })
+                        stop.addEventListener('click', (ev)=>{
+                            mediaRecorder.stop();
+                            console.log(mediaRecorder.state);
+                        });
+                        mediaRecorder.ondataavailable = function(ev) {
+                            chunks.push(ev.data);
+                        }
+                        mediaRecorder.onstop = (ev)=>{
+                            let blob = new Blob(chunks, { 'type' : 'video/mp4;' });
+                            chunks = [];
+                            let videoURL = window.URL.createObjectURL(blob);
+                            vidSave.src = videoURL;
+                            sendobj = blob;
+                        }
+                        sendVid.addEventListener('click', (ev)=>{
+                            sendData(sendobj);
+                        });
+                    })
+                    .catch(function(err) {
+                        console.log(err.name, err.message);
+                    });
+                    function getCookie(name) {
+                      var cookieValue = null;
+                      if (document.cookie && document.cookie !== '') {
+                          var cookies = document.cookie.split(';');
+                          for (var i = 0; i < cookies.length; i++) {
+                              var cookie = cookies[i].trim();
+                              // Does this cookie string begin with the name we want?
+                              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                  break;
+                              }
+                          }
+                      }
+                      return cookieValue;
+                  }
+                  function sendData(data)
+                    {
+                        let csrftoken = getCookie('csrftoken');
+                        let response=fetch("/viderec/", {
+                            method: "post",
+                            body: data,
+                            headers: {
+                                "X-CSRFToken": csrftoken,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                    }).then((response) => {
+                        return response.json();
+                      }).then((data) => {
+                        console.log(data);
+                        document.getElementById('filenameid').value = data.data;
+                      })
+                   }
+                   function butDis(x) {
+                      var y;
+                      if (x === 0){
+                          y = "btnSave"
+                          document.getElementById("vid2").style.display = "block";
+                      }
+                      if (x === 1){
+                          y = "btnAnalysis"
+                      }
+                      document.getElementById(y).disabled = '';
+                      return 0;
+                    }
+
+                    /*********************************
+                    getUserMedia returns a Promise
+                    resolve - returns a MediaStream Object
+                    reject returns one of the following errors
+                    AbortError - generic unknown cause
+                    NotAllowedError (SecurityError) - user rejected permissions
+                    NotFoundError - missing media track
+                    NotReadableError - user permissions given but hardware/OS error
+                    OverconstrainedError - constraint video settings preventing
+                    TypeError - audio: false, video: false
+                    *********************************/
+               </script>
+            </section>
+        </main>
+        <footer>
+        </footer>
+    </body>
+</html>

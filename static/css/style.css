@@ -1,0 +1,45 @@
+/* ---- Structures ---- */
+
+.section-form {
+  width: 60%;
+  margin: auto auto;
+  line-height: normal;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.input-text {
+  width: 40%;
+  margin: 0 auto 2% auto;
+}
+
+
+/* ---- Decor ---- */
+
+body {
+  background: linear-gradient(80deg, #00658d, #87d8f5);
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
+  font-weight: lighter;
+  color: #ffffff;
+}
+
+hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 4px solid rgba(0, 0, 0, 0.1);
+}
+
+div.modalm {
+  display: none;
+  font-size: 18px;
+}
+
+div.modalm button.btn {
+  width: 20%;
+}
+
+button.btn {
+  width: 40%;
+}
